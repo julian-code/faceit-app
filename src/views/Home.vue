@@ -2,9 +2,7 @@
   <div>
     <v-row>
       <v-col>
-        <v-card>
-          hello
-        </v-card>
+        <follow-players></follow-players>
       </v-col>
       <v-col>
         <v-card title="123">
@@ -15,7 +13,12 @@
 </template>
 
 <script>
+import followPlayers from '@/components/follow-players.vue';
+
 export default {
+  components: {
+    followPlayers,
+  },
   name: 'Home',
 };
 </script>
