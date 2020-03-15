@@ -4,9 +4,10 @@
       <v-col>
         <follow-players></follow-players>
       </v-col>
+    </v-row>
+    <v-row>
       <v-col>
-        <v-card title="123">
-        </v-card>
+        <selected-players></selected-players>
       </v-col>
     </v-row>
   </div>
@@ -14,10 +15,12 @@
 
 <script>
 import followPlayers from '@/components/follow-players.vue';
+import selectedPlayers from '@/components/selected-players.vue';
 
 export default {
   components: {
     followPlayers,
+    selectedPlayers,
   },
   name: 'Home',
 };
