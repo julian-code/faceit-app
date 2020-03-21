@@ -104,11 +104,11 @@ export default {
       headers: [
         {
           text: 'Map',
-          value: 'i1',
+          value: 'map',
         },
         {
           text: 'Win',
-          value: 'i10',
+          value: 'win',
         },
         {
           text: 'Elo',
@@ -116,23 +116,23 @@ export default {
         },
         {
           text: 'Kills',
-          value: 'i6',
+          value: 'kills',
         },
         {
           text: 'Assists',
-          value: 'i7',
+          value: 'assists',
         },
         {
           text: 'Deaths',
-          value: 'i8',
+          value: 'deaths',
         },
         {
           text: 'K/R',
-          value: 'c3',
+          value: 'killPerRound',
         },
         {
           text: 'K/D',
-          value: 'c2',
+          value: 'kd',
         },
       ],
     };

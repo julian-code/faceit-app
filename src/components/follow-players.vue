@@ -55,32 +55,34 @@ export default {
     return {
       players: [],
       search: null,
-      isLoading: false,
       items: [],
     };
   },
   computed: {
     ...mapState({
       selectedPlayers: (state) => state.selectedPlayers,
+      isLoading: (state) => state.isLoading,
     }),
   },
   methods: {
     ...mapActions({
       remove: ACTIONS.REMOVE_SELECTED_PLAYER,
       addPlayer: ACTIONS.SET_SELECTED_PLAYERS,
+      changeLoading: ACTIONS.SET_IS_LOADING,
     }),
     async querySelections(val) {
       if (this.isLoading) {
         return;
       }
-      this.isLoading = true;
+      this.changeLoading(true);
       fetch(`https://api.faceit.com/search/v1?limit=20&query=${val}`)
         .then((res) => res.json())
         .then((res) => {
+          console.log(res.payload.players.results);
           this.items = res.payload.players.results;
         })
       // eslint-disable-next-line no-return-assign
-        .finally(() => (this.isLoading = false));
+        .finally(() => (this.changeLoading(false)));
     },
   },
   watch: {

@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import { ACTIONS, MUTATIONS } from './constants';
+import { ACTIONS, MUTATIONS, GETTERS } from './constants';
 
 Vue.use(Vuex);
 
@@ -8,8 +8,27 @@ async function fetchMatches(pageNumber, player) {
   const response = await fetch(
     `https://api.faceit.com/stats/v1/stats/time/users/${player.guid}/games/csgo?page=${pageNumber}&size=2000`,
   );
-  const data = response.json();
-  return data;
+  const data = await response.json();
+  const matches = [];
+  // eslint-disable-next-line no-plusplus
+  for (let index = 0; index < data.length - 1; index++) {
+    const x = data[index];
+    const match = {
+      matchId: x.matchId,
+      elo: Number(x.elo),
+      eloDiff: Number(x.elo) - Number(data[index + 1].elo),
+      map: x.i1,
+      win: x.teamId === x.i2,
+      time: x.created_at,
+      kills: x.i6,
+      assists: x.i7,
+      deaths: x.i8,
+      killPerRound: x.c3,
+      kd: x.c2,
+    };
+    matches.push(match);
+  }
+  return matches;
 }
 
 async function getPlayerProfile(playerName) {
@@ -60,6 +79,9 @@ export default new Vuex.Store({
     },
   },
   actions: {
+    [ACTIONS.SET_IS_LOADING](ctx, payload) {
+      ctx.commit(MUTATIONS.SET_IS_LOADING, payload);
+    },
     [ACTIONS.TOGGLE_DRAWER](ctx) {
       ctx.commit(MUTATIONS.SET_DRAWER, !this.state.drawer);
     },
@@ -76,6 +98,11 @@ export default new Vuex.Store({
     },
     [ACTIONS.REMOVE_SELECTED_PLAYER](ctx, payload) {
       ctx.commit(MUTATIONS.REMOVE_SELECTED_PLAYER, payload);
+    },
+  },
+  getters: {
+    [GETTERS.GET_COMMON_MATCHES](ctx) {
+      return ctx.state;
     },
   },
   modules: {
