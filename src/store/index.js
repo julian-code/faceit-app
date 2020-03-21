@@ -1,8 +1,20 @@
+/* eslint-disable max-len */
 import Vue from 'vue';
 import Vuex from 'vuex';
+import _ from 'lodash';
 import { ACTIONS, MUTATIONS, GETTERS } from './constants';
 
 Vue.use(Vuex);
+
+function amountOfWins(matches) {
+  let totalWins = 0;
+  matches.forEach((match) => {
+    if (match.win) {
+      totalWins += 1;
+    }
+  });
+  return totalWins;
+}
 
 async function fetchMatches(pageNumber, player) {
   const response = await fetch(
@@ -10,16 +22,29 @@ async function fetchMatches(pageNumber, player) {
   );
   const data = await response.json();
   const matches = [];
+  const faultyMatches = [];
   // eslint-disable-next-line no-plusplus
   for (let index = 0; index < data.length - 1; index++) {
     const x = data[index];
+    // eslint-disable-next-line no-restricted-globals
+    if (isNaN(x.elo)) {
+      faultyMatches.push(x);
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+    // eslint-disable-next-line no-restricted-globals
+    if (isNaN(Number(x.elo) - Number(data[index + 1].elo))) {
+      faultyMatches.push(x);
+      // eslint-disable-next-line no-continue
+      continue;
+    }
     const match = {
       matchId: x.matchId,
       elo: Number(x.elo),
       eloDiff: Number(x.elo) - Number(data[index + 1].elo),
       map: x.i1,
       win: x.teamId === x.i2,
-      time: x.created_at,
+      time: new Date(x.created_at).toLocaleString(),
       kills: x.i6,
       assists: x.i7,
       deaths: x.i8,
@@ -28,7 +53,8 @@ async function fetchMatches(pageNumber, player) {
     };
     matches.push(match);
   }
-  return matches;
+  console.log(faultyMatches);
+  return { matches, faultyMatches };
 }
 
 async function getPlayerProfile(playerName) {
@@ -47,12 +73,13 @@ async function getPlayerProfile(playerName) {
   let matchConcat = [];
   matches.forEach((entry) => {
     if (matchConcat.length > 0) {
-      matchConcat = matchConcat.concat(entry);
+      matchConcat = matchConcat.concat(entry.matches);
     } else {
-      matchConcat = entry;
+      matchConcat = entry.matches;
     }
   });
   player.matches = matchConcat;
+  player.faultyMatches = matches.faultyMatches;
   return player;
 }
 
@@ -83,7 +110,7 @@ export default new Vuex.Store({
       ctx.commit(MUTATIONS.SET_IS_LOADING, payload);
     },
     [ACTIONS.TOGGLE_DRAWER](ctx) {
-      ctx.commit(MUTATIONS.SET_DRAWER, !this.state.drawer);
+      ctx.commit(MUTATIONS.SET_DRAWER, !ctx.state.drawer);
     },
     async [ACTIONS.SET_SELECTED_PLAYERS](ctx, payload) {
       const results = [];
@@ -102,7 +129,46 @@ export default new Vuex.Store({
   },
   getters: {
     [GETTERS.GET_COMMON_MATCHES](ctx) {
-      return ctx.state;
+      const allMatches = [];
+      if (!ctx.selectedPlayers.length === 1) {
+        return [];
+      }
+      ctx.selectedPlayers.forEach((player) => {
+        const comparableMatches = player.matches.map((match) => ({
+          matchId: match.matchId,
+          eloDiff: match.eloDiff,
+          map: match.map,
+          win: match.win,
+          time: new Date(match.time),
+        }));
+        allMatches.push(comparableMatches);
+      });
+      return _.intersectionBy(...allMatches, 'matchId');
+    },
+    [GETTERS.GET_MAP_STATS](ctx, getters) {
+      const commonMatches = getters.GET_COMMON_MATCHES;
+      const groupedMatches = _.chain(commonMatches)
+        .groupBy('map')
+        .map((matches, map) => (
+          { map, matches }))
+        .map((matchGroup) => ({
+          map: matchGroup.map,
+          totalPlayed: matchGroup.matches.length,
+          totalEloGained: _.reduce(matchGroup.matches, (sum, match) => sum + match.eloDiff, 0),
+          wins: _.sumBy(matchGroup.matches, (match) => { if (match.win) return 1; return 0; }),
+          losses: _.sumBy(matchGroup.matches, (match) => { if (!match.win) return 1; return 0; }),
+          winProcent: Number(((amountOfWins(matchGroup.matches) / (matchGroup.matches.length)) * 100)
+            .toFixed(2)),
+        }))
+        .value();
+      const totalStats = {
+        totalMapPlayed: _.reduce(groupedMatches, (sum, groupedMatch) => sum + groupedMatch.totalPlayed, 0),
+        totalEloGain: _.reduce(groupedMatches, (sum, groupedMatch) => sum + groupedMatch.totalEloGained, 0),
+        totalWins: _.reduce(groupedMatches, (sum, groupedMatch) => sum + groupedMatch.wins, 0),
+        totalLosses: _.reduce(groupedMatches, (sum, groupedMatch) => sum + groupedMatch.losses, 0),
+        totalWinProcent: (_.reduce(groupedMatches, (sum, groupedMatch) => sum + groupedMatch.winProcent, 0) / groupedMatches.length).toFixed(2),
+      };
+      return { groupedMatches: _.orderBy(groupedMatches, ['wins', 'winProcent', 'totalEloGained'], ['desc', 'desc', 'desc']), totalStats };
     },
   },
   modules: {

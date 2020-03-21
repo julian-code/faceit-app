@@ -47,6 +47,7 @@
 </template>
 
 <script>
+import _ from 'lodash';
 import { mapState, mapActions } from 'vuex';
 import { ACTIONS } from '../store/constants';
 
@@ -79,7 +80,7 @@ export default {
         .then((res) => res.json())
         .then((res) => {
           console.log(res.payload.players.results);
-          this.items = res.payload.players.results;
+          this.items = _.filter(res.payload.players.results, (player) => player.games.find((game) => game.name === 'csgo'));
         })
       // eslint-disable-next-line no-return-assign
         .finally(() => (this.changeLoading(false)));

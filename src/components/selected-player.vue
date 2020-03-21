@@ -80,9 +80,9 @@
                   :items="player.matches"
                   @click:row="openMatch"
                 >
-                  <template v-slot:item.i10="{ item }">
-                    <v-chip v-if="item.i10 > 0" :color="determineWin(item.i10)" dark>WIN</v-chip>
-                    <v-chip v-else :color="determineWin(item.i10)" dark>LOSS</v-chip>
+                  <template v-slot:item.win="{ item }">
+                    <v-chip v-if="item.win" color="green" dark>WIN</v-chip>
+                    <v-chip v-else color="red" dark>LOSS</v-chip>
                   </template>
                 </v-data-table>
               </v-col>
@@ -134,6 +134,10 @@ export default {
           text: 'K/D',
           value: 'kd',
         },
+        {
+          text: 'Played at',
+          value: 'time',
+        },
       ],
     };
   },
@@ -161,12 +165,6 @@ export default {
         `https://www.faceit.com/en/csgo/room/${match.matchId}`,
         '_blank',
       );
-    },
-    determineWin(winState) {
-      if (winState > 0) {
-        return 'green';
-      }
-      return 'red';
     },
   },
 };

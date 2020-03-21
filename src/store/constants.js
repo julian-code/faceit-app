@@ -15,4 +15,5 @@ export const MUTATIONS = {
 
 export const GETTERS = {
   GET_COMMON_MATCHES: 'GET_COMMON_MATCHES',
+  GET_MAP_STATS: 'GET_MAP_STATS',
 };
