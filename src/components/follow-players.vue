@@ -79,7 +79,6 @@ export default {
       fetch(`https://api.faceit.com/search/v1?limit=20&query=${val}`)
         .then((res) => res.json())
         .then((res) => {
-          console.log(res.payload.players.results);
           this.items = _.filter(res.payload.players.results, (player) => player.games.find((game) => game.name === 'csgo'));
         })
       // eslint-disable-next-line no-return-assign

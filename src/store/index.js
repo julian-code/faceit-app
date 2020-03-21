@@ -53,7 +53,6 @@ async function fetchMatches(pageNumber, player) {
     };
     matches.push(match);
   }
-  console.log(faultyMatches);
   return { matches, faultyMatches };
 }
 
