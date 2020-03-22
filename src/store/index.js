@@ -40,7 +40,7 @@ async function fetchMatches(pageNumber, player) {
     }
     const match = {
       matchId: x.matchId,
-      teamId: x.teamId,
+      teamName: x.i5,
       elo: Number(x.elo),
       eloDiff: Number(x.elo) - Number(data[index + 1].elo),
       map: x.i1,
@@ -61,6 +61,7 @@ async function getPlayerProfile(playerName) {
   const response = await fetch(`https://api.faceit.com/core/v1/nicknames/${playerName}`);
   const data = await response.json();
   const player = data.payload;
+  player.isActive = false;
   const response2 = await fetch(`https://api.faceit.com/stats/api/v1/stats/users/${player.guid}/games/csgo`);
   const stats = await response2.json();
   player.stats = stats.lifetime;
@@ -87,6 +88,7 @@ export default new Vuex.Store({
   state: {
     drawer: false,
     selectedPlayers: [],
+    playersToCompare: [],
     isLoading: false,
   },
   mutations: {
@@ -99,13 +101,33 @@ export default new Vuex.Store({
     [MUTATIONS.SET_SELECTED_PLAYERS](state, payload) {
       state.selectedPlayers = payload;
     },
-    [MUTATIONS.REMOVE_SELECTED_PLAYER](state, payload) {
-      const foundPlayer = state.selectedPlayers.filter((item) => item.guid === payload)[0] || null;
-      const index = state.selectedPlayers.indexOf(foundPlayer);
-      if (index >= 0) state.selectedPlayers.splice(index, 1);
+    [MUTATIONS.ADD_PLAYER_TO_COMPARE](state, payload) {
+      state.playersToCompare.push(payload);
+    },
+    [MUTATIONS.REMOVE_PLAYER_TO_COMPARE](state, payload) {
+      state.playersToCompare = _.without(state.playersToCompare, payload);
+    },
+    [MUTATIONS.CLEAR_PLAYERS_TO_COMPARE](state) {
+      state.playersToCompare = [];
+      state.selectedPlayers = [];
+      state.selectedPlayers.forEach((player) => {
+        const activePlayer = player;
+        activePlayer.isActive = false;
+        state.selectedPlayers.push(activePlayer);
+      });
     },
   },
   actions: {
+    [ACTIONS.ADD_OR_REMOVE_PLAYER_TO_COMPARE](ctx, payload) {
+      const foundPlayer = _.findIndex(ctx.state.playersToCompare, (player) => player.guid === payload.guid);
+      if (foundPlayer < 0) {
+        const player = payload;
+        player.isActive = true;
+        ctx.commit(MUTATIONS.ADD_PLAYER_TO_COMPARE, payload);
+      } else {
+        ctx.commit(MUTATIONS.REMOVE_PLAYER_TO_COMPARE, payload);
+      }
+    },
     [ACTIONS.SET_IS_LOADING](ctx, payload) {
       ctx.commit(MUTATIONS.SET_IS_LOADING, payload);
     },
@@ -113,6 +135,7 @@ export default new Vuex.Store({
       ctx.commit(MUTATIONS.SET_DRAWER, !ctx.state.drawer);
     },
     async [ACTIONS.SET_SELECTED_PLAYERS](ctx, payload) {
+      ctx.commit(MUTATIONS.CLEAR_PLAYERS_TO_COMPARE);
       const results = [];
       // eslint-disable-next-line no-plusplus
       for (let index = 0; index < payload.length; index++) {
@@ -130,11 +153,12 @@ export default new Vuex.Store({
   getters: {
     [GETTERS.GET_COMMON_MATCHES](ctx) {
       const allMatches = [];
-      if (!ctx.selectedPlayers.length === 1) {
+      if (!ctx.playersToCompare.length === 1) {
         return [];
       }
-      ctx.selectedPlayers.forEach((player) => {
+      ctx.playersToCompare.forEach((player) => {
         const comparableMatches = player.matches.map((match) => ({
+          teamName: match.teamName,
           matchId: match.matchId,
           eloDiff: match.eloDiff,
           map: match.map,
@@ -143,7 +167,13 @@ export default new Vuex.Store({
         }));
         allMatches.push(comparableMatches);
       });
-      return _.intersectionBy(...allMatches, 'teamId');
+      return _.intersectionWith(...allMatches,
+        (match1, match2) => {
+          if (match1.win === match2.win && match1.matchId === match2.matchId) {
+            return true;
+          }
+          return false;
+        });
     },
     [GETTERS.GET_MAP_STATS](ctx, getters) {
       const commonMatches = getters.GET_COMMON_MATCHES;

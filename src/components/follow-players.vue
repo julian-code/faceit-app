@@ -13,22 +13,8 @@
       hide-no-data
       cache-items
       multiple
-      chips
       placeholder="Search by player name"
     >
-      <template v-slot:selection="data">
-        <v-chip
-          v-bind="data.attrs"
-          close
-          @click="data.select"
-          @click:close="remove(data.item.id)"
-        >
-          <v-avatar left>
-            <v-img :src="data.item.avatar"></v-img>
-          </v-avatar>
-          {{ data.item.nickname }}
-        </v-chip>
-      </template>
       <template v-slot:item="data">
         <template v-if="typeof data.item !== 'object'">
           <v-list-item-content v-text="data.item.nickname"></v-list-item-content>
