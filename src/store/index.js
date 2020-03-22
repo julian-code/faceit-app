@@ -40,6 +40,7 @@ async function fetchMatches(pageNumber, player) {
     }
     const match = {
       matchId: x.matchId,
+      teamId: x.teamId,
       elo: Number(x.elo),
       eloDiff: Number(x.elo) - Number(data[index + 1].elo),
       map: x.i1,
@@ -142,7 +143,7 @@ export default new Vuex.Store({
         }));
         allMatches.push(comparableMatches);
       });
-      return _.intersectionBy(...allMatches, 'matchId');
+      return _.intersectionBy(...allMatches, 'teamId');
     },
     [GETTERS.GET_MAP_STATS](ctx, getters) {
       const commonMatches = getters.GET_COMMON_MATCHES;
