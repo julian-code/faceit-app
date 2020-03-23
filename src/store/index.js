@@ -99,7 +99,10 @@ export default new Vuex.Store({
       state.drawer = payload;
     },
     [MUTATIONS.SET_SELECTED_PLAYERS](state, payload) {
-      state.selectedPlayers = payload;
+      state.selectedPlayers.push(payload);
+    },
+    [MUTATIONS.REMOVE_SELECTED_PLAYER](state, payload) {
+      state.selectedPlayers = _.without(state.selectedPlayers, payload);
     },
     [MUTATIONS.ADD_PLAYER_TO_COMPARE](state, payload) {
       const indexOfPlayer = _.findIndex(state.selectedPlayers, (player) => player.nickname === payload.nickname);
@@ -135,14 +138,8 @@ export default new Vuex.Store({
     },
     async [ACTIONS.SET_SELECTED_PLAYERS](ctx, payload) {
       ctx.commit(MUTATIONS.CLEAR_PLAYERS_TO_COMPARE);
-      const results = [];
-      // eslint-disable-next-line no-plusplus
-      for (let index = 0; index < payload.length; index++) {
-        const element = payload[index];
-        results.push(getPlayerProfile(element));
-      }
       ctx.commit(MUTATIONS.SET_IS_LOADING, true);
-      ctx.commit(MUTATIONS.SET_SELECTED_PLAYERS, await Promise.all(results));
+      ctx.commit(MUTATIONS.SET_SELECTED_PLAYERS, await getPlayerProfile(payload));
       ctx.commit(MUTATIONS.SET_IS_LOADING, false);
     },
     [ACTIONS.REMOVE_SELECTED_PLAYER](ctx, payload) {

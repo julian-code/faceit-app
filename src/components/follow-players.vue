@@ -1,5 +1,6 @@
 <template>
     <v-autocomplete
+      prepend-icon="mdi-database-search"
       v-model="selectedPlayers"
       @change="search = ''"
       @input="addPlayer"
@@ -10,8 +11,8 @@
       item-value="nickname"
       hide-selected
       hide-no-data
+      open-on-clear
       cache-items
-      multiple
       placeholder="Search by player name"
     >
       <template v-slot:item="data">
@@ -59,14 +60,11 @@ export default {
       if (this.isLoading) {
         return;
       }
-      this.changeLoading(true);
       fetch(`https://api.faceit.com/search/v1?limit=20&query=${val}`)
         .then((res) => res.json())
         .then((res) => {
           this.items = _.filter(res.payload.players.results, (player) => player.games.find((game) => game.name === 'csgo'));
-        })
-      // eslint-disable-next-line no-return-assign
-        .finally(() => (this.changeLoading(false)));
+        });
     },
   },
   watch: {
