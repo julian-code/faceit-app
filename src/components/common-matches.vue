@@ -10,7 +10,9 @@
                 v-for="player in selectedPlayers" :key="player.nickname"
                 v-bind="player"
                 @input="addOrRemovePlayerToCompare(player)"
-                :filter="player.isActive"
+                :input-value="player.isCompared"
+                :disabled="playersToCompare.length == 5 && !player.isCompared"
+                filter
               >
                 <v-avatar left>
                   <v-img :src="player.avatar"></v-img>
@@ -69,7 +71,7 @@
     </v-row>
   </v-card>
   <v-card v-else>
-    <v-card-text>Please select more than one player to see common matches.</v-card-text>
+    <v-card-text>Please add more than one player to see common matches.</v-card-text>
   </v-card>
 </template>
 

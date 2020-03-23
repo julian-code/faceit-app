@@ -1,5 +1,4 @@
 <template>
-  <v-card>
     <v-autocomplete
       v-model="selectedPlayers"
       @change="search = ''"
@@ -29,7 +28,6 @@
         </template>
       </template>
     </v-autocomplete>
-  </v-card>
 </template>
 
 <script>

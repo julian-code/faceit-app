@@ -61,7 +61,7 @@ async function getPlayerProfile(playerName) {
   const response = await fetch(`https://api.faceit.com/core/v1/nicknames/${playerName}`);
   const data = await response.json();
   const player = data.payload;
-  player.isActive = false;
+  player.isCompared = false;
   const response2 = await fetch(`https://api.faceit.com/stats/api/v1/stats/users/${player.guid}/games/csgo`);
   const stats = await response2.json();
   player.stats = stats.lifetime;
@@ -102,19 +102,18 @@ export default new Vuex.Store({
       state.selectedPlayers = payload;
     },
     [MUTATIONS.ADD_PLAYER_TO_COMPARE](state, payload) {
+      const indexOfPlayer = _.findIndex(state.selectedPlayers, (player) => player.nickname === payload.nickname);
+      state.selectedPlayers[indexOfPlayer].isCompared = true;
       state.playersToCompare.push(payload);
     },
     [MUTATIONS.REMOVE_PLAYER_TO_COMPARE](state, payload) {
+      const indexOfPlayer = _.findIndex(state.selectedPlayers, (player) => player.nickname === payload.nickname);
+      state.selectedPlayers[indexOfPlayer].isCompared = false;
       state.playersToCompare = _.without(state.playersToCompare, payload);
     },
     [MUTATIONS.CLEAR_PLAYERS_TO_COMPARE](state) {
+      state.selectedPlayers = _.map(state.selectedPlayers, (player) => _.set(player, 'isCompared', false));
       state.playersToCompare = [];
-      state.selectedPlayers = [];
-      state.selectedPlayers.forEach((player) => {
-        const activePlayer = player;
-        activePlayer.isActive = false;
-        state.selectedPlayers.push(activePlayer);
-      });
     },
   },
   actions: {
@@ -122,7 +121,7 @@ export default new Vuex.Store({
       const foundPlayer = _.findIndex(ctx.state.playersToCompare, (player) => player.guid === payload.guid);
       if (foundPlayer < 0) {
         const player = payload;
-        player.isActive = true;
+        player.isCompared = true;
         ctx.commit(MUTATIONS.ADD_PLAYER_TO_COMPARE, payload);
       } else {
         ctx.commit(MUTATIONS.REMOVE_PLAYER_TO_COMPARE, payload);

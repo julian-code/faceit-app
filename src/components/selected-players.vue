@@ -1,16 +1,21 @@
 <template>
   <v-card>
     <v-tabs v-model="currentTab">
-      <v-tab
-      v-for="tab in tabs" :key="tab.title"
-      >{{tab.title}}</v-tab>
+      <v-tab v-for="tab in tabs" :key="tab.title">{{tab.title}}</v-tab>
       <v-tab-item v-for="tab in tabs" :key="tab.title">
-          <component
-            v-bind:is="tab.component"
-            v-bind="tab.value"
-          >
-          </component>
+        <component v-bind:is="tab.component" v-bind="tab.value"></component>
       </v-tab-item>
+      <v-menu offset-y :close-on-content-click="false">
+        <template v-slot:activator="{ on }">
+          <v-btn elevation="0" v-on="on" class="align-self-center mr-4" :loading="isLoading">
+            add player
+            <v-icon right>mdi-plus</v-icon>
+          </v-btn>
+        </template>
+        <v-card>
+          <follow-players></follow-players>
+        </v-card>
+      </v-menu>
     </v-tabs>
   </v-card>
 </template>
@@ -19,11 +24,13 @@
 import { mapState } from 'vuex';
 import selectedPlayer from '@/components/selected-player.vue';
 import commonMatches from '@/components/common-matches.vue';
+import followPlayers from '@/components/follow-players.vue';
 
 export default {
   components: {
     selectedPlayer,
     commonMatches,
+    followPlayers,
   },
   data() {
     return {
@@ -33,9 +40,10 @@ export default {
   computed: {
     ...mapState({
       selectedPlayers: (state) => state.selectedPlayers,
+      isLoading: (state) => state.isLoading,
     }),
     tabs() {
-      const fixedTabs = [
+      const fixedTabsLeft = [
         {
           title: 'Common matches',
           value: null,
@@ -47,7 +55,7 @@ export default {
         value: { player },
         component: 'selected-player',
       }));
-      return fixedTabs.concat(...playerTabs);
+      return fixedTabsLeft.concat(...playerTabs);
     },
   },
 };
