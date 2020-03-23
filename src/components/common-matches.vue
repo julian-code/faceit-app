@@ -2,8 +2,8 @@
   <v-card deck v-if="selectedPlayers.length > 1">
     <v-row>
       <v-col>
-        <v-card>
-          <v-card-title>Select players to compare</v-card-title>
+        <v-card elevation="0">
+          <v-card-title>Click to select players to compare</v-card-title>
           <v-card-text>
             <v-chip-group multiple>
               <v-chip
