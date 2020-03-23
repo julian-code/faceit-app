@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app dark>
 
     <navigation-drawer :drawer="drawer"></navigation-drawer>
 
@@ -33,7 +33,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss" scoped>
-
-</style>

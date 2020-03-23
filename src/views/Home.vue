@@ -1,11 +1,9 @@
 <template>
-  <div>
     <v-row>
       <v-col>
         <selected-players></selected-players>
       </v-col>
     </v-row>
-  </div>
 </template>
 
 <script>

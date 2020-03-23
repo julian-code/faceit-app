@@ -1,5 +1,4 @@
 <template>
-  <v-card>
     <v-tabs v-model="currentTab">
       <v-tab v-for="tab in tabs" :key="tab.title">{{tab.title}}</v-tab>
       <v-tab-item v-for="tab in tabs" :key="tab.title">
@@ -17,7 +16,6 @@
         </v-card>
       </v-menu>
     </v-tabs>
-  </v-card>
 </template>
 
 <script>
@@ -60,6 +58,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss" scoped>
-</style>
